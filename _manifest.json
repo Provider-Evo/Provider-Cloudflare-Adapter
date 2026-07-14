@@ -1,0 +1,25 @@
+{
+  "manifest_version": 2,
+  "id": "nichengfuben.provider-cloudflare-adapter",
+  "name": "Provider Cloudflare Adapter",
+  "version": "1.0.0",
+  "description": "Cloudflare Workers AI platform adapter (REST API mode)",
+  "plugin_type": "platform",
+  "author": {
+    "name": "nichengfuben"
+  },
+  "host_application": {
+    "min_version": "2.2.268",
+    "max_version": "2.2.99"
+  },
+  "sdk": {
+    "min_version": "0.3.3",
+    "max_version": "0.99.99"
+  },
+  "dependencies": [
+    "nichengfuben.provider-fncall-util"
+  ],
+  "capabilities": [
+    "platform.adapter"
+  ]
+}
