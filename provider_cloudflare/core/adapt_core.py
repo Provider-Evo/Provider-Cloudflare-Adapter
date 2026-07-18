@@ -1,10 +1,10 @@
 """
-adaptercore 模块。
+adapt_core 模块。
 
 本文件为 Provider-Evo 项目标准模块，使用以下约定：
 
-- 模块路径：provider-plugin.Provider-Cloudflare-Adapter.provider_cloudflare.core.adaptercore
-- 文件名：adaptercore.py
+- 模块路径：provider-plugin.Provider-Cloudflare-Adapter.provider_cloudflare.core.adapt_core
+- 文件名：adapt_core.py
 - 父包：provider-plugin/Provider-Cloudflare-Adapter/provider_cloudflare/core
 
 职责：
@@ -44,13 +44,13 @@ from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 
 import aiohttp
 
-from src.core.dispatch.candidate import Candidate
+from src.core.dispatch.cand import Candidate
 from src.foundation.logger import get_logger
 from provider_sdk.extensions.platform.adapter import PlatformAdapter
 
 from ..accounts import API_KEYS
 from .client import CloudflareClient
-from .constants import CAPS, DEFAULT_MODEL, MODELS
+from .consts import CAPS, DEFAULT_MODEL, MODELS
 
 logger = get_logger(__name__)
 

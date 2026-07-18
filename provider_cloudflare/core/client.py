@@ -12,10 +12,10 @@ from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 
 import aiohttp
 
-from src.core.dispatch.candidate import Candidate, make_id
+from src.core.dispatch.cand import Candidate, make_id
 from src.foundation.logger import get_logger
 
-from .constants import (
+from .consts import (
     BASE_URL,
     CAPS,
     DEFAULT_MODEL,
