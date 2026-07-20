@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import asyncio
-import base64
 import time
 from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 
@@ -172,8 +171,8 @@ class CloudflareClient:
         model: str = DEFAULT_MODEL,
         language: Optional[str] = None,
     ) -> Dict[str, Any]:
-        audio_base64 = base64.b64encode(audio_data).decode("utf-8")
-        payload: Dict[str, Any] = {"audio": audio_base64}
+        # Cloudflare Whisper 接口要求 audio 为字节数组（list[int]），传 base64 字符串会被拒绝（HTTP 400）
+        payload: Dict[str, Any] = {"audio": list(audio_data)}
         if language:
             payload["language"] = language
         return await self._do_request(model, payload)
