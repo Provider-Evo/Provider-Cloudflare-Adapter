@@ -11,6 +11,8 @@ from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 
 import aiohttp
 
+from provider_sdk.model_ids import ModelIdRegistry
+
 from src.core.dispatch.cand import Candidate, make_id
 from src.foundation.logger import get_logger
 
@@ -36,7 +38,9 @@ class CloudflareClient:
         self._session: Optional[aiohttp.ClientSession] = None
         self._api_key: str = ""
         self._candidates: List[Candidate] = []
-        self._models: List[str] = list(MODELS)
+        self._model_registry = ModelIdRegistry("cloudflare")
+        self._model_registry.load()
+        self._models: List[str] = self._model_registry.register_many(MODELS)
         self._model_cache_ts: float = 0.0
 
     async def init_immediate(
@@ -75,10 +79,10 @@ class CloudflareClient:
     async def fetch_remote_models(self) -> List[str]:
         """从 Cloudflare API 拉取可用模型列表。"""
         if not FETCH_MODELS_ENABLED:
-            return list(MODELS)
+            return list(self._models)
 
         if not self._session:
-            return list(MODELS)
+            return list(self._models)
 
         now = time.time()
         if now - self._model_cache_ts < MODEL_CACHE_TTL and self._models:
@@ -94,22 +98,21 @@ class CloudflareClient:
             ) as resp:
                 if resp.status != 200:
                     logger.warning("cloudflare 获取模型列表失败, HTTP%d", resp.status)
-                    return list(MODELS)
+                    return list(self._models)
                 data = await resp.json()
                 result = data.get("result", [])
-                ids = [m.get("id", "") for m in result if isinstance(m, dict) and m.get("id")]
-                if ids:
-                    self._models = ids
+                if result:
+                    self._models = self._model_registry.register_catalog(result)
                     self._model_cache_ts = now
                     self._rebuild_candidates()
-                    logger.info("cloudflare 模型列表已更新: %d个", len(ids))
+                    logger.info("cloudflare 模型列表已更新: %d个", len(self._models))
                 return list(self._models)
         except Exception as e:
             logger.warning("cloudflare 获取模型列表异常: %s", e)
-            return list(MODELS)
+            return list(self._models)
 
     def update_models(self, models: List[str]) -> None:
-        self._models = list(models)
+        self._models = self._model_registry.register_many(models)
         self._rebuild_candidates()
 
     # ---------- HTTP 工具 ----------
@@ -171,6 +174,7 @@ class CloudflareClient:
         model: str = DEFAULT_MODEL,
         language: Optional[str] = None,
     ) -> Dict[str, Any]:
+        model = self._model_registry.resolve_upstream(model)
         # Cloudflare Whisper 接口要求 audio 为字节数组（list[int]），传 base64 字符串会被拒绝（HTTP 400）
         payload: Dict[str, Any] = {"audio": list(audio_data)}
         if language:
@@ -190,6 +194,7 @@ class CloudflareClient:
         search: bool = False,
         **kw: Any,
     ) -> AsyncGenerator[Union[str, Dict[str, Any]], None]:
+        model = self._model_registry.resolve_upstream(model)
         payload: Dict[str, Any] = {
             "messages": messages,
             "max_tokens": kw.get("max_tokens", 1000),
