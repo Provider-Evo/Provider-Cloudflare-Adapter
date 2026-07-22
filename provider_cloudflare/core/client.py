@@ -112,7 +112,7 @@ class CloudflareClient:
             return list(self._models)
 
     def update_models(self, models: List[str]) -> None:
-        self._models = self._model_registry.register_many(models)
+        self._models = self._model_registry.register_merge(models, fallback=MODELS)
         self._rebuild_candidates()
 
     # ---------- HTTP 工具 ----------
